@@ -21,8 +21,10 @@
 // STATUS for the profiler plugin
 
 extern std::atomic<const char *> g_profiler_memory_status;
+extern std::atomic<const char *> g_profiler_cpu_status;
 
 extern char *g_dump_path;
+extern char *g_cpu_profile_path;
 extern char *g_pprof_binary;
 
 // Status/sysvar arrays are only declared here
@@ -41,10 +43,22 @@ inline const char *get_profiler_memory_status()
 {
   return g_profiler_memory_status.load(std::memory_order_acquire);
 }
+inline void set_profiler_cpu_status(bool on)
+{
+  g_profiler_cpu_status.store(on ? "ON" : "OFF", std::memory_order_release);
+}
+inline const char *get_profiler_cpu_status()
+{
+  return g_profiler_cpu_status.load(std::memory_order_acquire);
+}
 
 inline const char *get_dump_path()
 {
   return g_dump_path ? g_dump_path : "/tmp/memprof_dump";
+}
+inline const char *get_cpu_profile_path()
+{
+  return g_cpu_profile_path ? g_cpu_profile_path : "/tmp/cpuprof";
 }
 inline const char *get_pprof_binary()
 {

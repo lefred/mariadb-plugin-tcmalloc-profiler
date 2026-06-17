@@ -20,6 +20,7 @@
 
 #include <mariadb.h>
 #include "profiler.h"
+#include "profiler_cpu.h"
 #include "profiler_memory.h"
 #include <sql_class.h>
 #include <mysql/plugin_function.h>
@@ -167,6 +168,86 @@ protected:
 
 Create_func_memprof_diff Create_func_memprof_diff::s_singleton;
 
+class Create_func_cpuprof_start : public Create_native_func
+{
+public:
+  Item *create_native(THD *thd, const LEX_CSTRING *name,
+                      List<Item> *item_list) override
+  {
+    const uint n= item_list ? item_list->elements : 0;
+    if (n == 0)
+      return new (thd->mem_root) Item_func_cpuprof_start(thd);
+    if (n == 1)
+      return new (thd->mem_root) Item_func_cpuprof_start(thd, *item_list);
+
+    my_error(ER_WRONG_PARAMCOUNT_TO_NATIVE_FCT, MYF(0), name->str);
+    return nullptr;
+  }
+  static Create_func_cpuprof_start s_singleton;
+
+protected:
+  Create_func_cpuprof_start() {}
+  ~Create_func_cpuprof_start() override {}
+};
+
+Create_func_cpuprof_start Create_func_cpuprof_start::s_singleton;
+
+class Create_func_cpuprof_stop : public Create_func_arg0
+{
+public:
+  Item *create_builder(THD *thd) override
+  {
+    return new (thd->mem_root) Item_func_cpuprof_stop(thd);
+  }
+  static Create_func_cpuprof_stop s_singleton;
+
+protected:
+  Create_func_cpuprof_stop() {}
+  ~Create_func_cpuprof_stop() override {}
+};
+
+Create_func_cpuprof_stop Create_func_cpuprof_stop::s_singleton;
+
+class Create_func_cpuprof_flush : public Create_func_arg0
+{
+public:
+  Item *create_builder(THD *thd) override
+  {
+    return new (thd->mem_root) Item_func_cpuprof_flush(thd);
+  }
+  static Create_func_cpuprof_flush s_singleton;
+
+protected:
+  Create_func_cpuprof_flush() {}
+  ~Create_func_cpuprof_flush() override {}
+};
+
+Create_func_cpuprof_flush Create_func_cpuprof_flush::s_singleton;
+
+class Create_func_cpuprof_report : public Create_native_func
+{
+public:
+  Item *create_native(THD *thd, const LEX_CSTRING *name,
+                      List<Item> *item_list) override
+  {
+    const uint n= item_list ? item_list->elements : 0;
+    if (n == 0)
+      return new (thd->mem_root) Item_func_cpuprof_report(thd);
+    if (n < 3)
+      return new (thd->mem_root) Item_func_cpuprof_report(thd, *item_list);
+
+    my_error(ER_WRONG_PARAMCOUNT_TO_NATIVE_FCT, MYF(0), name->str);
+    return nullptr;
+  }
+  static Create_func_cpuprof_report s_singleton;
+
+protected:
+  Create_func_cpuprof_report() {}
+  ~Create_func_cpuprof_report() override {}
+};
+
+Create_func_cpuprof_report Create_func_cpuprof_report::s_singleton;
+
 #define BUILDER(F) &F::s_singleton
 
 static Plugin_function plugin_descriptor_function_profiler_info(
@@ -178,7 +259,14 @@ static Plugin_function plugin_descriptor_function_profiler_info(
     plugin_descriptor_function_memprof_report(
         BUILDER(Create_func_memprof_report)),
     plugin_descriptor_function_memprof_diff(BUILDER(Create_func_memprof_diff)),
-    plugin_descriptor_function_memprof_dump(BUILDER(Create_func_memprof_dump));
+    plugin_descriptor_function_memprof_dump(BUILDER(Create_func_memprof_dump)),
+    plugin_descriptor_function_cpuprof_start(
+        BUILDER(Create_func_cpuprof_start)),
+    plugin_descriptor_function_cpuprof_stop(BUILDER(Create_func_cpuprof_stop)),
+    plugin_descriptor_function_cpuprof_flush(
+        BUILDER(Create_func_cpuprof_flush)),
+    plugin_descriptor_function_cpuprof_report(
+        BUILDER(Create_func_cpuprof_report));
 
 /*************************************************************************/
 
@@ -280,6 +368,78 @@ maria_declare_plugin(type_test){
         "tcmalloc_memprof_diff",                  // plugin name
         "lefred",                                 // plugin author
         "Function TCMALLOC_MEMPROF_DIFF()",       // the plugin description
+        PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
+        0,                  // Pointer to plugin initialization function
+        0,                  // Pointer to plugin deinitialization function
+        0x0100,             // Numeric version 0xAABB means AA.BB version
+        NULL,               // Status variables
+        NULL,               // System variables
+        "1.0",              // String version representation
+        MariaDB_PLUGIN_MATURITY_EXPERIMENTAL // Maturity(see
+                                             // include/mysql/plugin.h)*/
+    },
+    {
+        MariaDB_FUNCTION_PLUGIN,                   // the plugin type (see
+                                                   // include/mysql/plugin.h)
+        &plugin_descriptor_function_cpuprof_start, // pointer to type-specific
+                                                   // plugin descriptor
+        "tcmalloc_cpuprof_start",                  // plugin name
+        "lefred",                                  // plugin author
+        "Function TCMALLOC_CPUPROF_START()",       // the plugin description
+        PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
+        0,                  // Pointer to plugin initialization function
+        0,                  // Pointer to plugin deinitialization function
+        0x0100,             // Numeric version 0xAABB means AA.BB version
+        NULL,               // Status variables
+        NULL,               // System variables
+        "1.0",              // String version representation
+        MariaDB_PLUGIN_MATURITY_EXPERIMENTAL // Maturity(see
+                                             // include/mysql/plugin.h)*/
+    },
+    {
+        MariaDB_FUNCTION_PLUGIN,                  // the plugin type (see
+                                                  // include/mysql/plugin.h)
+        &plugin_descriptor_function_cpuprof_stop, // pointer to type-specific
+                                                  // plugin descriptor
+        "tcmalloc_cpuprof_stop",                  // plugin name
+        "lefred",                                 // plugin author
+        "Function TCMALLOC_CPUPROF_STOP()",       // the plugin description
+        PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
+        0,                  // Pointer to plugin initialization function
+        0,                  // Pointer to plugin deinitialization function
+        0x0100,             // Numeric version 0xAABB means AA.BB version
+        NULL,               // Status variables
+        NULL,               // System variables
+        "1.0",              // String version representation
+        MariaDB_PLUGIN_MATURITY_EXPERIMENTAL // Maturity(see
+                                             // include/mysql/plugin.h)*/
+    },
+    {
+        MariaDB_FUNCTION_PLUGIN,                   // the plugin type (see
+                                                   // include/mysql/plugin.h)
+        &plugin_descriptor_function_cpuprof_flush, // pointer to type-specific
+                                                   // plugin descriptor
+        "tcmalloc_cpuprof_flush",                  // plugin name
+        "lefred",                                  // plugin author
+        "Function TCMALLOC_CPUPROF_FLUSH()",       // the plugin description
+        PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
+        0,                  // Pointer to plugin initialization function
+        0,                  // Pointer to plugin deinitialization function
+        0x0100,             // Numeric version 0xAABB means AA.BB version
+        NULL,               // Status variables
+        NULL,               // System variables
+        "1.0",              // String version representation
+        MariaDB_PLUGIN_MATURITY_EXPERIMENTAL // Maturity(see
+                                             // include/mysql/plugin.h)*/
+    },
+    {
+        MariaDB_FUNCTION_PLUGIN,                    // the plugin type (see
+                                                    // include/mysql/plugin.h)
+        &plugin_descriptor_function_cpuprof_report, // pointer to type-specific
+                                                    // plugin descriptor
+        "tcmalloc_cpuprof_report",                  // plugin name
+        "lefred",                                   // plugin author
+        "Function TCMALLOC_CPUPROF_REPORT()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
         0,                  // Pointer to plugin deinitialization function

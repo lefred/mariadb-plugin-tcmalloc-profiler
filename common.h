@@ -35,6 +35,7 @@ enum Feature : unsigned
 {
   FEAT_TCMALLOC_HEAP_PROF= 1u << 0, // HeapProfiler{Start,Dump,Stop}
   FEAT_JEMALLOC_MALLCTL= 1u << 1,   // je_mallctl available
+  FEAT_TCMALLOC_CPU_PROF= 1u << 2,  // Profiler{Start,Stop,Flush}
 };
 
 inline std::atomic<unsigned> g_features{0};
@@ -50,6 +51,14 @@ using HeapProfilerStopFn= void (*)();
 inline HeapProfilerDumpFn fp_HeapProfilerDump= nullptr;
 inline HeapProfilerStartFn fp_HeapProfilerStart= nullptr;
 inline HeapProfilerStopFn fp_HeapProfilerStop= nullptr;
+
+using CpuProfilerStartFn= int (*)(const char *);
+using CpuProfilerStopFn= void (*)();
+using CpuProfilerFlushFn= void (*)();
+
+inline CpuProfilerStartFn fp_ProfilerStart= nullptr;
+inline CpuProfilerStopFn fp_ProfilerStop= nullptr;
+inline CpuProfilerFlushFn fp_ProfilerFlush= nullptr;
 
 using JeMallctlFn= int (*)(const char *, void *, size_t *, void *, size_t);
 inline JeMallctlFn fp_je_mallctl= nullptr;
@@ -68,6 +77,14 @@ inline void detect_allocator_features_once()
         reinterpret_cast<HeapProfilerStopFn>(sym("HeapProfilerStop"));
     if (fp_HeapProfilerDump && fp_HeapProfilerStart && fp_HeapProfilerStop)
       g_features.fetch_or(FEAT_TCMALLOC_HEAP_PROF, std::memory_order_relaxed);
+
+    fp_ProfilerStart=
+        reinterpret_cast<CpuProfilerStartFn>(sym("ProfilerStart"));
+    fp_ProfilerStop= reinterpret_cast<CpuProfilerStopFn>(sym("ProfilerStop"));
+    fp_ProfilerFlush=
+        reinterpret_cast<CpuProfilerFlushFn>(sym("ProfilerFlush"));
+    if (fp_ProfilerStart && fp_ProfilerStop && fp_ProfilerFlush)
+      g_features.fetch_or(FEAT_TCMALLOC_CPU_PROF, std::memory_order_relaxed);
 
     // jemalloc control interface
     fp_je_mallctl= reinterpret_cast<JeMallctlFn>(sym("je_mallctl"));
@@ -96,8 +113,18 @@ extern bool has_dump_with_prefix(const std::string &prefix_path);
 extern int remove_dump_files_with_prefix(const std::string &prefix_path,
                                          std::string *failed_path,
                                          int *error_code);
+extern int remove_file_if_exists(const std::string &path,
+                                 std::string *failed_path, int *error_code);
 extern std::string get_mariadb_server_binary();
 extern std::string exec_pprof(const std::vector<std::string> &argv);
 extern std::string limit_lines(const std::string &input, size_t max_lines);
+extern std::string item_to_string(Item *item, String *str);
+extern std::string normalized_report_type(const std::string &report_type);
+extern std::string pprof_output_flag(const std::string &normalized);
+extern bool is_report_type(const std::string &value);
+extern void append_profile_args(std::vector<std::string> *argv,
+                                const std::string &profile_arg);
+extern std::string strip_pprof_text_preamble(const std::string &report);
+extern std::string strip_pprof_dot_preamble(const std::string &report);
 
 #endif // PROFILER_COMMON_H

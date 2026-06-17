@@ -50,6 +50,10 @@ Expected functions:
 | tcmalloc_memprof_dump     | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_MEMPROF_DUMP()                        | lefred        |
 | tcmalloc_memprof_report   | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_MEMPROF_REPORT()                      | lefred        |
 | tcmalloc_memprof_diff     | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_MEMPROF_DIFF()                        | lefred        |
+| tcmalloc_cpuprof_start    | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_CPUPROF_START()                       | lefred        |
+| tcmalloc_cpuprof_stop     | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_CPUPROF_STOP()                        | lefred        |
+| tcmalloc_cpuprof_flush    | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_CPUPROF_FLUSH()                       | lefred        |
+| tcmalloc_cpuprof_report   | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_CPUPROF_REPORT()                      | lefred        |
 | tcmalloc_profiler_cleanup | FUNCTION    | tcmalloc_profiler.so | Function TCMALLOC_PROFILER_CLEANUP()                    | lefred        |
 +---------------------------+-------------+----------------------+---------------------------------------------------------+---------------+
 ```
@@ -69,6 +73,12 @@ Start heap profiling:
 SELECT TCMALLOC_MEMPROF_START();
 ```
 
+Start heap profiling for a specified period of time (in seconds):
+
+```sql
+SELECT TCMALLOC_MEMPROF_START(60);
+```
+
 Request an extra heap dump while profiling is running:
 
 ```sql
@@ -81,6 +91,30 @@ Stop heap profiling:
 SELECT TCMALLOC_MEMPROF_STOP();
 ```
 
+Start CPU profiling:
+
+```sql
+SELECT TCMALLOC_CPUPROF_START();
+```
+
+Start CPU profiling for a specified period of time (in seconds):
+
+```sql
+SELECT TCMALLOC_CPUPROF_START(60);
+```
+
+Request a CPU profile flush while profiling is running:
+
+```sql
+SELECT TCMALLOC_CPUPROF_FLUSH();
+```
+
+Stop CPU profiling:
+
+```sql
+SELECT TCMALLOC_CPUPROF_STOP();
+```
+
 ### Reporting
 
 Generate a report from the dump files:
@@ -88,6 +122,14 @@ Generate a report from the dump files:
 ```sql
 SELECT TCMALLOC_MEMPROF_REPORT();
 SELECT TCMALLOC_MEMPROF_REPORT('/tmp/memprof_dump.*.heap', 20, 'TEXT');
+```
+
+Generate a CPU profile report:
+
+```sql
+SELECT TCMALLOC_CPUPROF_REPORT();
+SELECT TCMALLOC_CPUPROF_REPORT('/tmp/cpuprof', 20);
+SELECT TCMALLOC_CPUPROF_REPORT('DOT') INTO DUMPFILE 'cpu.dot';
 ```
 
 Examples:
@@ -349,6 +391,70 @@ TCMALLOC_MEMPROF_REPORT(): Total: 29.3 MB
 1 row in set (9.516 sec)
 ```
 
+```sql 
+SELECT TCMALLOC_CPUPROF_REPORT()\G
+```
+
+The output will be similar to:
+
+```text
+*************************** 1. row ***************************
+TCMALLOC_CPUPROF_REPORT(): Total: 4 samples
+       2  50.0%  50.0%        2  50.0% __memcpy_avx_unaligned_erms
+       1  25.0%  75.0%        1  25.0% check_access (inline)
+       1  25.0% 100.0%        1  25.0% my_ascii_to_upper_magic_uint64 (inline)
+       0   0.0% 100.0%        4 100.0% JOIN::exec
+       0   0.0% 100.0%        4 100.0% JOIN::exec_inner
+       0   0.0% 100.0%        1  25.0% JOIN::prepare
+       0   0.0% 100.0%        1  25.0% Lex_ident::streq (inline)
+       0   0.0% 100.0%        1  25.0% TABLE_SHARE::init_from_sql_statement_string
+       0   0.0% 100.0%        4 100.0% __clone3
+       0   0.0% 100.0%        1  25.0% charset_info_st::streq (inline)
+       0   0.0% 100.0%        1  25.0% charset_info_st::strnncoll (inline)
+       0   0.0% 100.0%        1  25.0% check_access
+       0   0.0% 100.0%        1  25.0% check_single_table_access
+       0   0.0% 100.0%        1  25.0% discover_handlerton
+       0   0.0% 100.0%        4 100.0% dispatch_command
+       0   0.0% 100.0%        4 100.0% do_command
+       0   0.0% 100.0%        4 100.0% do_handle_one_connection
+       0   0.0% 100.0%        4 100.0% execute_sqlcom_select
+       0   0.0% 100.0%        3  75.0% fill_schema_table_by_open
+       0   0.0% 100.0%        4 100.0% get_all_tables
+       0   0.0% 100.0%        1  25.0% get_all_tables (inline)
+       0   0.0% 100.0%        1  25.0% get_schema_tables_record
+       0   0.0% 100.0%        1  25.0% get_schema_tables_record (inline)
+       0   0.0% 100.0%        4 100.0% get_schema_tables_result
+       0   0.0% 100.0%        1  25.0% ha_discover_table
+       0   0.0% 100.0%        4 100.0% handle_one_connection
+       0   0.0% 100.0%        4 100.0% handle_select
+       0   0.0% 100.0%        1  25.0% my_strcoll_ascii_toupper_8bytes (inline)
+       0   0.0% 100.0%        1  25.0% my_strnncoll_utf8mb3_general1400_as_ci
+       0   0.0% 100.0%        1  25.0% mysql_create_frm_image
+       0   0.0% 100.0%        1  25.0% mysql_derived_prepare
+       0   0.0% 100.0%        4 100.0% mysql_execute_command
+       0   0.0% 100.0%        1  25.0% mysql_handle_derived
+       0   0.0% 100.0%        4 100.0% mysql_parse
+       0   0.0% 100.0%        1  25.0% mysql_prepare_create_table_finalize
+       0   0.0% 100.0%        4 100.0% mysql_select
+       0   0.0% 100.0%        2  50.0% open_normal_and_derived_tables
+       0   0.0% 100.0%        1  25.0% open_normal_and_derived_tables (inline)
+       0   0.0% 100.0%        1  25.0% open_table
+       0   0.0% 100.0%        1  25.0% open_table_def
+       0   0.0% 100.0%        1  25.0% open_tables
+       0   0.0% 100.0%        1  25.0% open_tables (inline)
+       0   0.0% 100.0%        2  50.0% open_tables_only_view_structure
+       0   0.0% 100.0%        1  25.0% operator&= (inline)
+       0   0.0% 100.0%        4 100.0% pfs_spawn_thread
+       0   0.0% 100.0%        1  25.0% plugin_foreach_with_mask
+       0   0.0% 100.0%        1  25.0% setup_tables_and_check_access
+       0   0.0% 100.0%        1  25.0% st_select_lex_unit::prepare
+       0   0.0% 100.0%        1  25.0% st_select_lex_unit::prepare_join
+       0   0.0% 100.0%        4 100.0% start_thread
+       0   0.0% 100.0%        1  25.0% tdc_acquire_share
+
+1 row in set (9.179 sec)
+```
+
 It's also possible to only display to top n lines: 
 
 ```sql
@@ -373,14 +479,40 @@ TCMALLOC_MEMPROF_REPORT("TEXT",10): Total: 29.3 MB
 1 row in set (11.692 sec)
 ```
 
+```sql
+SELECT TCMALLOC_CPUPROF_REPORT("TEXT",10)\G
+```
+
+The first 10 lines are displayed:
+
+```text
+*************************** 1. row ***************************
+TCMALLOC_CPUPROF_REPORT("TEXT",10): Total: 4 samples
+       2  50.0%  50.0%        2  50.0% __memcpy_avx_unaligned_erms
+       1  25.0%  75.0%        1  25.0% check_access (inline)
+       1  25.0% 100.0%        1  25.0% my_ascii_to_upper_magic_uint64 (inline)
+       0   0.0% 100.0%        4 100.0% JOIN::exec
+       0   0.0% 100.0%        4 100.0% JOIN::exec_inner
+       0   0.0% 100.0%        1  25.0% JOIN::prepare
+       0   0.0% 100.0%        1  25.0% Lex_ident::streq (inline)
+       0   0.0% 100.0%        1  25.0% TABLE_SHARE::init_from_sql_statement_string
+       0   0.0% 100.0%        4 100.0% __clone3
+
+1 row in set (8.571 sec)
+```
+
+
 Generate a dot report and convert it to PNG:
 
 ```sql
 SELECT TCMALLOC_MEMPROF_REPORT('dot') INTO DUMPFILE 'memory.dot';
+
+SELECT TCMALLOC_CPUPROF_REPORT('dot') INTO DUMPFILE 'cpu.dot';
 ```
 
 ```sh
 dot -Tpng memory.dot -o memory.png
+dot -Tpng cpu.dot -o cpu.png
 ```
 
 Use `DUMPFILE`, not `OUTFILE`, for DOT output. `OUTFILE` escapes characters in
@@ -388,10 +520,17 @@ the result string and can produce an invalid dot file.
 
 Example:
 
-![mariadb-plugin-tcmalloc-profiler-dot-report](images/memory.png)
+Memory:
+
+![mariadb-plugin-tcmalloc-profiler-dot-report-memory](images/memory.png)
+
+CPU:
+
+![mariadb-plugin-tcmalloc-profiler-dot-report-cpu](images/cpu.png)
 
 
-Generate a diff report:
+
+Generate a diff report for memory:
 
 ```sql
 SELECT TCMALLOC_MEMPROF_DIFF();
@@ -407,6 +546,11 @@ You can cleanup the generated dumps:
 SELECT TCMALLOC_PROFILER_CLEANUP();
 ```
 
+The cleanup function removes heap dump files matching
+`tcmalloc_profiler_dump_path` and the CPU profile file configured by
+`tcmalloc_profiler_cpu_profile_path`. It refuses to remove files while either
+profiler is running.
+
 ## Variables and Status
 
 ```sql
@@ -416,15 +560,39 @@ SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
 
 Variables:
 
+- `tcmalloc_profiler_cpu_profile_path`: CPU profile output path. Default:
+  `/tmp/cpuprof`.
 - `tcmalloc_profiler_dump_path`: dump file prefix. Default:
   `/tmp/memprof_dump`.
 - `tcmalloc_profiler_pprof_binary`: path to `pprof`. Default:
   `/usr/bin/pprof`.
 
+
+```text
++------------------------------------+-------------------+
+| Variable_name                      | Value             |
++------------------------------------+-------------------+
+| tcmalloc_profiler_cpu_profile_path | /tmp/cpuprof      |
+| tcmalloc_profiler_dump_path        | /tmp/memprof_dump |
+| tcmalloc_profiler_pprof_binary     | /usr/bin/pprof    |
++------------------------------------+-------------------+
+```
+
 Status:
 
+- `Tcmalloc_profiler_cpu_status`: `ON` when CPU profiling is running,
+  otherwise `OFF`.
 - `Tcmalloc_profiler_memory_status`: `ON` when heap profiling is running,
   otherwise `OFF`.
+
+```text
++---------------------------------+-------+
+| Variable_name                   | Value |
++---------------------------------+-------+
+| Tcmalloc_profiler_cpu_status    | ON    |
+| Tcmalloc_profiler_memory_status | OFF   |
++---------------------------------+-------+
+```
 
 ## MTR Test
 
@@ -449,4 +617,5 @@ Run it from a MariaDB build tree:
 ```
 
 The test checks plugin variables/status, allocator detection, heap profiler
-start/dump/stop, and verifies that a heap dump file is created.
+start/dump/stop/reporting, CPU profiler start/flush/stop/reporting, and
+cleanup of generated profiling files.

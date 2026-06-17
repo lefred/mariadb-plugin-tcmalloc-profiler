@@ -9,8 +9,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <array>
+#include <algorithm>
 #include <cerrno>
+#include <cctype>
+#include <cstring>
 #include <fcntl.h>
+#include <glob.h>
 #include <memory>
 #include <sstream>
 #include <system_error>
@@ -158,6 +162,40 @@ int remove_dump_files_with_prefix(const std::string &prefix_path,
   return removed;
 }
 
+int remove_file_if_exists(const std::string &path, std::string *failed_path,
+                          int *error_code)
+{
+  fs::path file_path(path);
+  std::error_code ec;
+
+  if (path.empty())
+    return 0;
+
+  if (!fs::exists(file_path, ec))
+  {
+    if (ec)
+    {
+      if (failed_path)
+        *failed_path= path;
+      if (error_code)
+        *error_code= ec.value();
+      return -1;
+    }
+    return 0;
+  }
+
+  fs::remove(file_path, ec);
+  if (ec)
+  {
+    if (failed_path)
+      *failed_path= path;
+    if (error_code)
+      *error_code= ec.value();
+    return -1;
+  }
+  return 1;
+}
+
 extern std::string get_mariadb_server_binary()
 {
   char buf[PATH_MAX];
@@ -242,4 +280,74 @@ std::string limit_lines(const std::string &input, size_t max_lines)
   }
 
   return limited_stream.str();
+}
+
+std::string item_to_string(Item *item, String *str)
+{
+  String *value= item->val_str(str);
+  return value ? std::string(value->c_ptr_safe(), value->length())
+               : std::string();
+}
+
+std::string normalized_report_type(const std::string &report_type)
+{
+  std::string normalized= report_type;
+  std::transform(normalized.begin(), normalized.end(), normalized.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+  return normalized;
+}
+
+std::string pprof_output_flag(const std::string &normalized)
+{
+  std::string flag= normalized;
+  std::transform(flag.begin(), flag.end(), flag.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+  return flag;
+}
+
+bool is_report_type(const std::string &value)
+{
+  std::string normalized= normalized_report_type(value);
+  return normalized == "TEXT" || normalized == "DOT";
+}
+
+static bool has_glob_pattern(const std::string &value)
+{
+  return value.find_first_of("*?[") != std::string::npos;
+}
+
+void append_profile_args(std::vector<std::string> *argv,
+                         const std::string &profile_arg)
+{
+  if (!has_glob_pattern(profile_arg))
+  {
+    argv->push_back(profile_arg);
+    return;
+  }
+
+  glob_t glob_result;
+  memset(&glob_result, 0, sizeof(glob_result));
+  int rc= glob(profile_arg.c_str(), 0, nullptr, &glob_result);
+  if (rc == 0)
+  {
+    for (size_t i= 0; i < glob_result.gl_pathc; ++i)
+      argv->push_back(glob_result.gl_pathv[i]);
+  }
+  else
+  {
+    argv->push_back(profile_arg);
+  }
+  globfree(&glob_result);
+}
+
+std::string strip_pprof_text_preamble(const std::string &report)
+{
+  size_t pos= report.find("Total:");
+  return pos == std::string::npos ? report : report.substr(pos);
+}
+
+std::string strip_pprof_dot_preamble(const std::string &report)
+{
+  size_t pos= report.find("digraph");
+  return pos == std::string::npos ? report : report.substr(pos);
 }

@@ -52,6 +52,10 @@ String *Item_func_cleanup::val_str(String *str)
   {
     out_str= "HeapProfiler running";
   }
+  else if (strcmp(get_profiler_cpu_status(), "ON") == 0)
+  {
+    out_str= "CpuProfiler running";
+  }
   else
   {
     std::string failed_path;
@@ -61,6 +65,16 @@ String *Item_func_cleanup::val_str(String *str)
     {
       my_error(ER_CANT_DELETE_FILE, MYF(0),
                failed_path.empty() ? get_dump_path() : failed_path.c_str(),
+               error_code);
+      null_value= true;
+      return nullptr;
+    }
+    if (remove_file_if_exists(get_cpu_profile_path(), &failed_path,
+                              &error_code) < 0)
+    {
+      my_error(ER_CANT_DELETE_FILE, MYF(0),
+               failed_path.empty() ? get_cpu_profile_path()
+                                   : failed_path.c_str(),
                error_code);
       null_value= true;
       return nullptr;

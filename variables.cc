@@ -23,6 +23,7 @@
 // SYSVARs for the profiler plugin
 
 char *g_dump_path= nullptr;
+char *g_cpu_profile_path= nullptr;
 char *g_pprof_binary= nullptr;
 
 static MYSQL_SYSVAR_STR(dump_path, g_dump_path,
@@ -31,6 +32,14 @@ static MYSQL_SYSVAR_STR(dump_path, g_dump_path,
                         NULL,               // check
                         NULL,               // update
                         "/tmp/memprof_dump" // default
+);
+
+static MYSQL_SYSVAR_STR(cpu_profile_path, g_cpu_profile_path,
+                        PLUGIN_VAR_RQCMDARG | PLUGIN_VAR_MEMALLOC,
+                        "Path for tcmalloc CPU profiler output",
+                        NULL,           // check
+                        NULL,           // update
+                        "/tmp/cpuprof"  // default
 );
 
 static MYSQL_SYSVAR_STR(pprof_binary, g_pprof_binary,
@@ -43,12 +52,14 @@ static MYSQL_SYSVAR_STR(pprof_binary, g_pprof_binary,
 
 // Array of your plugin’s sysvars
 struct st_mysql_sys_var *profiler_sysvars[]= {
-    MYSQL_SYSVAR(dump_path), MYSQL_SYSVAR(pprof_binary), NULL};
+    MYSQL_SYSVAR(cpu_profile_path), MYSQL_SYSVAR(dump_path),
+    MYSQL_SYSVAR(pprof_binary), NULL};
 
 // STATUSVARs for the profiler plugin
 
 // Definition of the shared flag
 std::atomic<const char *> g_profiler_memory_status{"OFF"};
+std::atomic<const char *> g_profiler_cpu_status{"OFF"};
 
 // SHOW_FUNC getter so the server asks us at SHOW time
 static int show_profiler_memory_status(MYSQL_THD,
@@ -60,7 +71,17 @@ static int show_profiler_memory_status(MYSQL_THD,
   return 0;
 }
 
+static int show_profiler_cpu_status(MYSQL_THD, struct st_mysql_show_var *var,
+                                    char *)
+{
+  var->type= SHOW_CHAR;
+  var->value= (char *) get_profiler_cpu_status(); // safe: string literal
+  return 0;
+}
+
 struct st_mysql_show_var profiler_statusvars[]= {
+    {"tcmalloc_profiler_cpu_status", (char *) show_profiler_cpu_status,
+     SHOW_FUNC},
     {"tcmalloc_profiler_memory_status", (char *) show_profiler_memory_status,
      SHOW_FUNC},
     {nullptr, nullptr, SHOW_UNDEF}};

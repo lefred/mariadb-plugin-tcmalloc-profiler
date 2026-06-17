@@ -1,1 +1,1 @@
---plugin-load-add=$TCMALLOC_PROFILER_SO --tcmalloc-profiler-dump-path=$MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump
+--plugin-load-add=$TCMALLOC_PROFILER_SO --tcmalloc-profiler-cpu-profile-path=$MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_cpu --tcmalloc-profiler-dump-path=$MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump

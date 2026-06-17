@@ -26,81 +26,8 @@
 #include <thread>
 #include <chrono>
 #include <iomanip>
-#include <algorithm>
-#include <cctype>
-#include <glob.h>
 
 int dump_count= 1;
-
-static std::string item_to_string(Item *item, String *str)
-{
-  String *value= item->val_str(str);
-  return value ? std::string(value->c_ptr_safe(), value->length())
-               : std::string();
-}
-
-static std::string normalized_report_type(const std::string &report_type)
-{
-  std::string normalized= report_type;
-  std::transform(normalized.begin(), normalized.end(), normalized.begin(),
-                 [](unsigned char c) { return std::toupper(c); });
-  return normalized;
-}
-
-static std::string pprof_output_flag(const std::string &normalized)
-{
-  std::string flag= normalized;
-  std::transform(flag.begin(), flag.end(), flag.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
-  return flag;
-}
-
-static bool is_report_type(const std::string &value)
-{
-  std::string normalized= normalized_report_type(value);
-  return normalized == "TEXT" || normalized == "DOT";
-}
-
-static bool has_glob_pattern(const std::string &value)
-{
-  return value.find_first_of("*?[") != std::string::npos;
-}
-
-static void append_profile_args(std::vector<std::string> *argv,
-                                const std::string &profile_arg)
-{
-  if (!has_glob_pattern(profile_arg))
-  {
-    argv->push_back(profile_arg);
-    return;
-  }
-
-  glob_t glob_result;
-  memset(&glob_result, 0, sizeof(glob_result));
-  int rc= glob(profile_arg.c_str(), 0, nullptr, &glob_result);
-  if (rc == 0)
-  {
-    for (size_t i= 0; i < glob_result.gl_pathc; ++i)
-      argv->push_back(glob_result.gl_pathv[i]);
-  }
-  else
-  {
-    argv->push_back(profile_arg);
-  }
-  globfree(&glob_result);
-}
-
-static std::string strip_pprof_text_preamble(const std::string &report)
-{
-  size_t pos= report.find("Total:");
-  return pos == std::string::npos ? report : report.substr(pos);
-}
-
-static std::string strip_pprof_dot_preamble(const std::string &report)
-{
-  size_t pos= report.find("digraph");
-  return pos == std::string::npos ? report : report.substr(pos);
-}
 
 void startHeapProfilerWithTimeout(const std::string &dumpPath,
                                   int timeoutSeconds)

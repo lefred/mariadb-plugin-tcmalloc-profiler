@@ -1,13 +1,21 @@
 SHOW GLOBAL VARIABLES LIKE 'tcmalloc_profiler_%';
 Variable_name	Value
+tcmalloc_profiler_cpu_profile_path	MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_cpu
 tcmalloc_profiler_dump_path	MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump
 tcmalloc_profiler_pprof_binary	/usr/bin/pprof
 SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
 Variable_name	Value
+Tcmalloc_profiler_cpu_status	OFF
 Tcmalloc_profiler_memory_status	OFF
 SELECT TCMALLOC_PROFILER();
 TCMALLOC_PROFILER()
 TCMalloc Profiler plugin by lefred, current allocator: tcmalloc
+SELECT TCMALLOC_CPUPROF_STOP();
+TCMALLOC_CPUPROF_STOP()
+CpuProfiler not running
+SELECT TCMALLOC_CPUPROF_FLUSH();
+TCMALLOC_CPUPROF_FLUSH()
+CpuProfiler not running
 SELECT TCMALLOC_MEMPROF_STOP();
 TCMALLOC_MEMPROF_STOP()
 HeapProfiler not running
@@ -19,6 +27,7 @@ TCMALLOC_MEMPROF_START()
 HeapProfiler started, use MEMPROF_STOP() to stop it, dumps to MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump.NNNN.heap
 SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
 Variable_name	Value
+Tcmalloc_profiler_cpu_status	OFF
 Tcmalloc_profiler_memory_status	ON
 SELECT TCMALLOC_MEMPROF_DUMP();
 TCMALLOC_MEMPROF_DUMP()
@@ -28,12 +37,39 @@ TCMALLOC_MEMPROF_STOP()
 HeapProfiler stopped
 SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
 Variable_name	Value
+Tcmalloc_profiler_cpu_status	OFF
 Tcmalloc_profiler_memory_status	OFF
 SELECT LEFT(TCMALLOC_MEMPROF_REPORT('text', 1), 6) AS text_report_start;
 text_report_start
 Total:
 SELECT LEFT(TCMALLOC_MEMPROF_REPORT('dot'), 7) AS dot_report_start;
 dot_report_start
+digraph
+SELECT TCMALLOC_PROFILER_CLEANUP();
+TCMALLOC_PROFILER_CLEANUP()
+Profiling data has been cleaned up
+SELECT TCMALLOC_CPUPROF_START();
+TCMALLOC_CPUPROF_START()
+CpuProfiler started, use CPUPROF_STOP() to stop it, profile to MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_cpu
+SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
+Variable_name	Value
+Tcmalloc_profiler_cpu_status	ON
+Tcmalloc_profiler_memory_status	OFF
+SELECT TCMALLOC_CPUPROF_FLUSH();
+TCMALLOC_CPUPROF_FLUSH()
+CpuProfiler flush requested
+SELECT TCMALLOC_CPUPROF_STOP();
+TCMALLOC_CPUPROF_STOP()
+CpuProfiler stopped
+SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
+Variable_name	Value
+Tcmalloc_profiler_cpu_status	OFF
+Tcmalloc_profiler_memory_status	OFF
+SELECT LEFT(TCMALLOC_CPUPROF_REPORT('text', 1), 6) AS cpu_text_report_start;
+cpu_text_report_start
+Total:
+SELECT LEFT(TCMALLOC_CPUPROF_REPORT('dot'), 7) AS cpu_dot_report_start;
+cpu_dot_report_start
 digraph
 SELECT TCMALLOC_PROFILER_CLEANUP();
 TCMALLOC_PROFILER_CLEANUP()
