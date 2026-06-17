@@ -2,10 +2,10 @@
 
 ![mariadb-plugin-tcmalloc-profiler](images/tcmalloc_profiler.png)
 
-MariaDB function plugin for memory profiling with gperftools/tcmalloc.
+MariaDB function plugin for memory & CPU profiling with gperftools/tcmalloc.
 
 When MariaDB is started with the full tcmalloc profiler library, the plugin can
-start, dump, and stop heap profiling from SQL. It uses `pprof` to generate text
+start, dump, and stop heap profiling or CPU profiling from SQL. It uses `pprof` to generate text
 or dot reports from heap dump files.
 
 ## Requirements
