@@ -1,0 +1,23 @@
+--source include/not_embedded.inc
+
+--remove_files_wildcard $MYSQLTEST_VARDIR/tmp tcmalloc_profiler_dump*
+
+--replace_result $MYSQLTEST_VARDIR MYSQLTEST_VARDIR
+SHOW GLOBAL VARIABLES LIKE 'tcmalloc_profiler_%';
+SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
+SELECT TCMALLOC_PROFILER();
+SELECT TCMALLOC_MEMPROF_STOP();
+SELECT TCMALLOC_MEMPROF_DUMP();
+
+--replace_result $MYSQLTEST_VARDIR MYSQLTEST_VARDIR
+SELECT TCMALLOC_MEMPROF_START();
+SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
+SELECT TCMALLOC_MEMPROF_DUMP();
+SELECT TCMALLOC_MEMPROF_STOP();
+SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
+
+--file_exists $MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump.0001.heap
+SELECT LEFT(TCMALLOC_MEMPROF_REPORT('text', 1), 6) AS text_report_start;
+SELECT LEFT(TCMALLOC_MEMPROF_REPORT('dot'), 7) AS dot_report_start;
+SELECT TCMALLOC_PROFILER_CLEANUP();
+--exec test ! -e $MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump.0001.heap
