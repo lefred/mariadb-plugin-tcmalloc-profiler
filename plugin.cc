@@ -464,7 +464,7 @@ maria_declare_plugin(type_test){
         0x0100,             // Numeric version 0xAABB means AA.BB version
         NULL,               // Status variables
         NULL,               // System variables
-        "1.0",              // String version representation
+        "0.2.0",              // String version representation
         MariaDB_PLUGIN_MATURITY_EXPERIMENTAL // Maturity(see
                                              // include/mysql/plugin.h)*/
     }
