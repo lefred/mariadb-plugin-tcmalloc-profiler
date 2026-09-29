@@ -275,7 +275,7 @@ maria_declare_plugin(type_test){
     &plugin_descriptor_function_profiler_info, // pointer to type-specific
                                                // plugin descriptor
     "tcmalloc_profiler",                       // plugin name
-    "lefred",                                  // plugin author
+    PLUGIN_AUTHOR,                                  // plugin author
     "TCMalloc Profiler plugin for MariaDB (system variables)", // the plugin
                                                                // description
     PLUGIN_LICENSE_GPL,  // the plugin license (see include/mysql/plugin.h)
@@ -294,7 +294,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_memprof_start, // pointer to type-specific
                                                    // plugin descriptor
         "tcmalloc_memprof_start",                  // plugin name
-        "lefred",                                  // plugin author
+        PLUGIN_AUTHOR,                                  // plugin author
         "Function TCMALLOC_MEMPROF_START()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -312,7 +312,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_memprof_stop, // pointer to type-specific
                                                   // plugin descriptor
         "tcmalloc_memprof_stop",                  // plugin name
-        "lefred",                                 // plugin author
+        PLUGIN_AUTHOR,                                 // plugin author
         "Function TCMALLOC_MEMPROF_STOP()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -330,7 +330,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_memprof_dump, // pointer to type-specific
                                                   // plugin descriptor
         "tcmalloc_memprof_dump",                  // plugin name
-        "lefred",                                 // plugin author
+        PLUGIN_AUTHOR,                                 // plugin author
         "Function TCMALLOC_MEMPROF_DUMP()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -348,7 +348,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_memprof_report, // pointer to type-specific
                                                     // plugin descriptor
         "tcmalloc_memprof_report",                  // plugin name
-        "lefred",                                   // plugin author
+        PLUGIN_AUTHOR,                                   // plugin author
         "Function TCMALLOC_MEMPROF_REPORT()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -366,7 +366,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_memprof_diff, // pointer to type-specific
                                                   // plugin descriptor
         "tcmalloc_memprof_diff",                  // plugin name
-        "lefred",                                 // plugin author
+        PLUGIN_AUTHOR,                                 // plugin author
         "Function TCMALLOC_MEMPROF_DIFF()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -384,7 +384,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_cpuprof_start, // pointer to type-specific
                                                    // plugin descriptor
         "tcmalloc_cpuprof_start",                  // plugin name
-        "lefred",                                  // plugin author
+        PLUGIN_AUTHOR,                                  // plugin author
         "Function TCMALLOC_CPUPROF_START()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -402,7 +402,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_cpuprof_stop, // pointer to type-specific
                                                   // plugin descriptor
         "tcmalloc_cpuprof_stop",                  // plugin name
-        "lefred",                                 // plugin author
+        PLUGIN_AUTHOR,                                 // plugin author
         "Function TCMALLOC_CPUPROF_STOP()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -420,7 +420,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_cpuprof_flush, // pointer to type-specific
                                                    // plugin descriptor
         "tcmalloc_cpuprof_flush",                  // plugin name
-        "lefred",                                  // plugin author
+        PLUGIN_AUTHOR,                                  // plugin author
         "Function TCMALLOC_CPUPROF_FLUSH()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -438,7 +438,7 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_cpuprof_report, // pointer to type-specific
                                                     // plugin descriptor
         "tcmalloc_cpuprof_report",                  // plugin name
-        "lefred",                                   // plugin author
+        PLUGIN_AUTHOR,                                   // plugin author
         "Function TCMALLOC_CPUPROF_REPORT()",       // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
@@ -456,15 +456,15 @@ maria_declare_plugin(type_test){
         &plugin_descriptor_function_cleanup, // pointer to type-specific plugin
                                              // descriptor
         "tcmalloc_profiler_cleanup",         // plugin name
-        "lefred",                            // plugin author
+        PLUGIN_AUTHOR,                            // plugin author
         "Function TCMALLOC_PROFILER_CLEANUP()", // the plugin description
         PLUGIN_LICENSE_GPL, // the plugin license (see include/mysql/plugin.h)
         0,                  // Pointer to plugin initialization function
         0,                  // Pointer to plugin deinitialization function
-        0x0100,             // Numeric version 0xAABB means AA.BB version
+        PLUGIN_HEX_VERSION,             // Numeric version 0xAABB means AA.BB version
         NULL,               // Status variables
         NULL,               // System variables
-        "0.2.0",              // String version representation
+        PLUGIN_VERSION,              // String version representation
         MariaDB_PLUGIN_MATURITY_EXPERIMENTAL // Maturity(see
                                              // include/mysql/plugin.h)*/
     }

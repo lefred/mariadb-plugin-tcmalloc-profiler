@@ -14,8 +14,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1335  USA
 
-MYSQL_ADD_PLUGIN(tcmalloc_profiler
-                 plugin.cc profiler_memory.cc profiler_cpu.cc profiler.cc variables.cc
-                 common.cc
+cmake_minimum_required(VERSION 3.12)
+find_package(mariadb-plugin REQUIRED)
+MARIADB_ADD_PLUGIN(tcmalloc_profiler
+                 plugin.cc profiler_memory.cc profiler.cc variables.cc
+                 MODULE_ONLY
                  RECOMPILE_FOR_EMBEDDED
-                 MODULE_ONLY COMPONENT Test)
+                 AUTHOR lefred
+                 VERSION 0.2.2
+		 DESCRIPTION "TCMalloc Memory and CPU Profiler for MariaDB"
+                 )
+include(CPack)
