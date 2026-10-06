@@ -1,9 +1,13 @@
 --source include/not_embedded.inc
 
+--disable_query_log
+call mtr.add_suppression("Plugin 'tcmalloc_.*' is of maturity level experimental while the server is");
+--enable_query_log
+
 --remove_files_wildcard $MYSQLTEST_VARDIR/tmp tcmalloc_profiler_cpu
 --remove_files_wildcard $MYSQLTEST_VARDIR/tmp tcmalloc_profiler_dump*
 
---replace_result $MYSQLTEST_VARDIR MYSQLTEST_VARDIR
+--replace_result $MYSQLTEST_VARDIR MYSQLTEST_VARDIR $TCMALLOC_PPROF_BINARY PPROF_BINARY
 SHOW GLOBAL VARIABLES LIKE 'tcmalloc_profiler_%';
 SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
 SELECT TCMALLOC_PROFILER();

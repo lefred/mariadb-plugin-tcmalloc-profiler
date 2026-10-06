@@ -19,5 +19,5 @@ jobs:
     with:
        mariadb_versions: 74647
        test_suites: tcmalloc_profiler
-       extra_packages_deb: libgoogle-perftools-dev 
+       extra_packages_deb: libgoogle-perftools-dev google-perftools
        extra_packages_rpm: gperftools-devel

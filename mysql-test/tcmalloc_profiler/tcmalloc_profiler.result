@@ -2,7 +2,7 @@ SHOW GLOBAL VARIABLES LIKE 'tcmalloc_profiler_%';
 Variable_name	Value
 tcmalloc_profiler_cpu_profile_path	MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_cpu
 tcmalloc_profiler_dump_path	MYSQLTEST_VARDIR/tmp/tcmalloc_profiler_dump
-tcmalloc_profiler_pprof_binary	/usr/bin/pprof
+tcmalloc_profiler_pprof_binary	PPROF_BINARY
 SHOW GLOBAL STATUS LIKE 'tcmalloc_profiler_%';
 Variable_name	Value
 Tcmalloc_profiler_cpu_status	OFF
