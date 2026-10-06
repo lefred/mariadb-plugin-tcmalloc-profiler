@@ -15,13 +15,75 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1335  USA
 
 cmake_minimum_required(VERSION 3.12)
-find_package(mariadb-plugin REQUIRED)
-MARIADB_ADD_PLUGIN(tcmalloc_profiler
-                 plugin.cc profiler_memory.cc profiler.cc variables.cc
-                 MODULE_ONLY
-                 RECOMPILE_FOR_EMBEDDED
-                 AUTHOR lefred
-                 VERSION 0.2.2
-		 DESCRIPTION "TCMalloc Memory and CPU Profiler for MariaDB"
-                 )
+
+project(tcmalloc_profiler)
+
+set(PLUGIN_NAME "tcmalloc_profiler")
+set(PLUGIN_AUTHOR "lefred")
+set(PLUGIN_VERSION "0.2.3")
+set(PLUGIN_HEX_VERSION "0x000203")
+set(PLUGIN_DESCRIPTION "TCMalloc Memory and CPU Profiler for MariaDB")
+set(PLUGIN_LICENSE "PLUGIN_LICENSE_GPL")
+
+set(PROFILER_PLUGIN_SOURCES
+    plugin.cc
+    profiler_memory.cc
+    profiler_cpu.cc
+    profiler.cc
+    variables.cc
+    common.cc
+)
+
+#
+# New MariaDB external plugin infrastructure.
+# QUIET is important so older MariaDB versions can fall back to
+# MYSQL_ADD_PLUGIN().
+#
+find_package(mariadb-plugin QUIET)
+
+if(COMMAND MARIADB_ADD_PLUGIN)
+
+    message(STATUS "Building ${PLUGIN_NAME} using MARIADB_ADD_PLUGIN")
+
+    MARIADB_ADD_PLUGIN(${PLUGIN_NAME}
+        ${PROFILER_PLUGIN_SOURCES}
+        MODULE_ONLY
+        RECOMPILE_FOR_EMBEDDED
+        AUTHOR "${PLUGIN_AUTHOR}"
+        VERSION "${PLUGIN_VERSION}"
+        DESCRIPTION "${PLUGIN_DESCRIPTION}"
+    )
+
+elseif(COMMAND MYSQL_ADD_PLUGIN)
+
+    message(STATUS "Building ${PLUGIN_NAME} using legacy MYSQL_ADD_PLUGIN")
+
+    MYSQL_ADD_PLUGIN(${PLUGIN_NAME}
+        ${PROFILER_PLUGIN_SOURCES}
+        MODULE_ONLY
+        RECOMPILE_FOR_EMBEDDED
+    )
+
+    #
+    # MARIADB_ADD_PLUGIN provides these definitions automatically.
+    # Legacy MYSQL_ADD_PLUGIN does not, so provide them explicitly.
+    #
+    target_compile_definitions(${PLUGIN_NAME} PRIVATE
+        PLUGIN_AUTHOR="${PLUGIN_AUTHOR}"
+        PLUGIN_DESCRIPTION="${PLUGIN_DESCRIPTION}"
+        PLUGIN_VERSION="${PLUGIN_VERSION}"
+        PLUGIN_HEX_VERSION=${PLUGIN_HEX_VERSION}
+        PLUGIN_LICENSE=${PLUGIN_LICENSE}
+        PLUGIN_NAME="${PLUGIN_NAME}"
+    )
+
+else()
+
+    message(FATAL_ERROR
+        "Cannot build ${PLUGIN_NAME}: neither MARIADB_ADD_PLUGIN nor "
+        "MYSQL_ADD_PLUGIN is available."
+    )
+
+endif()
+
 include(CPack)

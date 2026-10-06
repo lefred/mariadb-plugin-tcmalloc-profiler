@@ -1,0 +1,32 @@
+name: Build and package TCMALLOC_PROFILER plugin
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: lefred/mariadb-plugin-ci/.github/workflows/build-plugin.yml@main
+    with:
+      plugin_name: tcmalloc-profiler
+      plugin_directory: tcmalloc_profiler
+      build_target: tcmalloc_profiler
+      plugin_library: tcmalloc_profiler.so
+
+      sdk_image: quay.io/lefred14/mariadb-plugin-build
+      mariadb_versions: |
+          13.0.2
+          13.1.1
+          
+      cmake_options: -DPLUGIN_DATE_EXTRA=DYNAMIC
+      test_suite: tcmalloc_profiler
+      run_tests: false
